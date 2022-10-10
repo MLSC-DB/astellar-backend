@@ -8,7 +8,7 @@ const { body, validationResult } = require("express-validator");
 const { route } = require("./levels");
 
 function checkOrigin(origin) {
-  if (origin === "astellar.xyz") {
+  if (origin === "https://astellar.xyz") {
     return true;
   } else {
     return false;
@@ -35,6 +35,9 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+
+    const { teamname, u1, u2, u3, email, email1, email2, password } = req.body;
+
     if (checkOrigin(req.headers.origin)) {
       const { teamname, u1, u2, u3, email, email1, email2, password } =
         req.body;
@@ -42,47 +45,47 @@ router.post(
       //Check team
       User.findOne({
         teamname,
-      }).then((teamname) => {
-        if (teamname) {
+      }).then((t1) => {
+        if (t1) {
           return res.status(400).json({
             errors: [{ msg: "Teamname already exists" }],
           });
         }
-      });
-
-      //Checking if the user is already signed up or not
-      User.findOne({
-        email,
-      }).then((user) => {
-        if (user) {
-          return res.status(400).json({
-            errors: [{ msg: "Email already exists" }],
-          });
-        }
-
-        //If not save the new User
-        bcrypt.hash(password, 10).then((hashedPass) => {
-          const newUser = new User({
-            teamname,
-            u1,
-            u2,
-            u3,
-            email,
-            email1,
-            email2,
-            password: hashedPass,
-          });
-          newUser
-            .save()
-            .then((saveduser) => {
-              res.status(200).json(saveduser);
-            })
-            .catch((err) => {
-              console.log(err);
-            })
-            .catch((err) => {
-              console.log(err);
+        //Checking if the user is already signed up or not
+        User.findOne({
+          email,
+        }).then((user) => {
+          if (user) {
+            return res.status(400).json({
+              errors: [{ msg: "Email already exists" }],
             });
+          }
+
+          //If not save the new User
+          bcrypt.hash(password, 10).then((hashedPass) => {
+            const newUser = new User({
+              teamname,
+              u1,
+              u2,
+              u3,
+              email,
+              email1,
+              email2,
+              password: hashedPass,
+            });
+            newUser
+              .save()
+              .then((saveduser) => {
+              console.log(teamname);
+                res.status(200).json(saveduser);
+              })
+              .catch((err) => {
+                console.log(err);
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+          });
         });
       });
     } else {
