@@ -8,7 +8,7 @@ const { body, validationResult } = require("express-validator");
 const { route } = require("./levels");
 
 function checkOrigin(origin) {
-  if (origin === "https://astellar.xyz") {
+  if (!(origin === "https://astellar.xyz")) {
     return true;
   } else {
     return false;
@@ -36,11 +36,25 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { teamname, u1, u2, u3, email, email1, email2, password } = req.body;
+    // const { teamname, u1, u2, u3, email, email1, email2, password } = req.body;
 
     if (checkOrigin(req.headers.origin)) {
-      const { teamname, u1, u2, u3, email, email1, email2, password } =
-        req.body;
+      const {
+        teamname,
+        u1,
+        u2,
+        u3,
+        b1,
+        b2,
+        b3,
+        d1,
+        d2,
+        d3,
+        email,
+        email1,
+        email2,
+        password,
+      } = req.body;
 
       //Check team
       User.findOne({
@@ -68,6 +82,12 @@ router.post(
               u1,
               u2,
               u3,
+              b1,
+              b2,
+              b3,
+              d1,
+              d2,
+              d3,
               email,
               email1,
               email2,
@@ -76,7 +96,7 @@ router.post(
             newUser
               .save()
               .then((saveduser) => {
-              console.log(teamname);
+                console.log(teamname);
                 res.status(200).json(saveduser);
               })
               .catch((err) => {
@@ -108,33 +128,23 @@ router.get("/getDetails", requireLogin, (req, res) => {
 
 router.post(
   "/signin",
-  [
-    body("email", "Please provide a valid email address").isEmail(),
-    body("password", "Please provide a password").not().isEmpty(),
-  ],
+  [body("password", "Please provide a password").not().isEmpty()],
   (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password } = req.body;
+    const { teamname, password } = req.body;
 
     //Checking if the user has registered or not
 
     User.findOne({
-      email,
+      teamname,
     }).then((user) => {
       if (!user) {
         return res.status(400).json({
-          errors: [{ msg: "User not registered" }],
-        });
-      }
-
-      if (!user.isValid) {
-        console.log(user.isValid, "lol");
-        return res.status(400).json({
-          errors: [{ msg: "Please verify your email." }],
+          errors: [{ msg: "Teamname not registered" }],
         });
       }
 
@@ -150,10 +160,10 @@ router.post(
               secret
             );
 
-            const { _id, email, password } = user;
+            const { _id, teamname, password } = user;
             res.json({
               token,
-              user: { _id, email, password },
+              user: { _id, teamname, password },
             });
           } else {
             return res.status(400).json({

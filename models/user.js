@@ -16,6 +16,26 @@ const userSchema = new schema({
   u3: {
     type: String,
   },
+  d1: {
+    type: String,
+    required: true,
+  },
+  d2: {
+    type: String,
+  },
+  d3: {
+    type: String,
+  },
+  b1: {
+    type: Number,
+    required: true,
+  },
+  b2: {
+    type: Number,
+  },
+  b3: {
+    type: Number,
+  },
   email: {
     type: String,
     required: true,
