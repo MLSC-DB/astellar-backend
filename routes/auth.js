@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const requireLogin = require("../middleware/requireLogin");
+const authorization = require("../middleware/authorization");
 const { body, validationResult } = require("express-validator");
 const { route } = require("./levels");
 
@@ -65,6 +65,7 @@ router.post(
             errors: [{ msg: "Teamname already exists" }],
           });
         }
+        
         //Checking if the user is already signed up or not
         User.findOne({
           email,
@@ -116,8 +117,8 @@ router.post(
   }
 );
 
-router.get("/getDetails", requireLogin, (req, res) => {
-  User.findById(req.user._id)
+router.get("/getDetails", authorization, (req, res) => {
+  User.findById(req.team._id)
     .then((user) => {
       res.status(200).json(user);
     })
@@ -161,6 +162,11 @@ router.post(
             );
 
             const { _id, teamname, password } = user;
+
+            res.cookie("jwt", token, {
+              expires: new Date(Date.now() + 18000000),
+              httpOnly: true,
+            });
             res.json({
               token,
               user: { _id, teamname, password },
@@ -177,5 +183,14 @@ router.post(
     });
   }
 );
+
+
+router.get("/logout",(req,res)=>{
+  res.cookie("jwt","",{
+    httpOnly:true,
+    expires: new Date(0),
+  })
+  send();
+})
 
 module.exports = router;

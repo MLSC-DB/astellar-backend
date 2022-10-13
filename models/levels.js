@@ -21,6 +21,9 @@ const levelSchema = new schema({
     type: Number,
     required: true,
   },
+  fileURL: {
+    type: String,
+  },
 });
 
 const Level = mongoose.model("Level", levelSchema);

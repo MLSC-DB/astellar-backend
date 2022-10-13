@@ -61,19 +61,19 @@ router.post("/postLevel", upload, (req, res) => {
 });
 
 //Get current level of a user
-router.get("/getCurrentLevel", requireLogin, (req, res) => {
-  User.findById(req.user._id)
-    .populate("atLevel", ["_id", "hint", "question"])
-    .then((level) => {
-      console.log(level, "level");
-      res.status(200).json(level);
-    })
-    .catch((err) => {
-      res.json({
-        err: "Sorry, There was an network error showing your current level",
-      });
-    });
-});
+// router.get("/getCurrentLevel", requireLogin, (req, res) => {
+//   User.findById(req.user._id)
+//     .populate("atLevel", ["_id", "hint", "question"])
+//     .then((level) => {
+//       console.log(level, "level");
+//       res.status(200).json(level);
+//     })
+//     .catch((err) => {
+//       res.json({
+//         err: "Sorry, There was an network error showing your current level",
+//       });
+//     });
+// });
 
 //Checking answer of the level
 router.post("/answer", requireLogin, (req, res) => {
@@ -117,11 +117,9 @@ router.post("/answer", requireLogin, (req, res) => {
 
 //Fectching users to be displayed on the leaderboard
 router.get("/getlevels", (req, res) => {
-  User.find(
-    {},
-    { _id: 1, name: 1, university: 1, atLevel: 1, lastLevelCrackedAt: 1 }
-  )
-    .sort({ atLevel: -1, lastLevelCrackedAt: 1 })
+  User.find({}, { _id: 1, teamname: 1, points: 1, lastLevelCrackedAt: 1 })
+    .sort({ points: -1, lastLevelCrackedAt: 1 })
+    .limit(50)
     .then((users) => {
       res.status(200).json(users);
     })
@@ -129,67 +127,5 @@ router.get("/getlevels", (req, res) => {
       console.log(err);
     });
 });
-
-router.get("/getdate", (req, res) => {
-  var g1 = new Date(2022, 3, 14, 18, 0, 0);
-  var g2 = new Date();
-
-  if (g1.getTime() < g2.getTime()) {
-    res.status(200).json({
-      bool: false,
-    });
-  } else {
-    res.status(200).json({
-      bool: true,
-    });
-  }
-});
-
-//Get validated users
-router.get("/getValidation", (req, res) => {
-  User.find({
-    isValid: false,
-  })
-    .then((users) => {
-      res.status(200).json(users.length);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-});
-
-// router.get("/postLevelsTogether", (req, res) => {
-//     const levels = JSON.parse(
-//         fs.readFileSync(`${__dirname}/../_data/questions.json`, "utf-8")
-//     );
-
-//     levels.map(({ _id, question, password, hint, answer }) => {
-//         if (password === "youcannotcrackit54") {
-//             bcrypt.hash(answer, 10).then((hashedAnswer) => {
-//                 const newLevel = new Level({
-//                     _id,
-//                     question,
-//                     hint,
-//                     answer: hashedAnswer,
-//                 });
-
-//                 newLevel
-//                     .save()
-//                     .then((savedLevel) => {
-//                         // res.status(200).json(savedLevel);
-//                         console.log(savedLevel, "level");
-//                     })
-//                     .catch((err) => {
-//                         // res.status(400).json({
-//                         //     err,
-//                         // });
-//                         console.log(err);
-//                     });
-//             });
-//         } else {
-//             console.log("!admin");
-//         }
-//     });
-// });
 
 module.exports = router;
