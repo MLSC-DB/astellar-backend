@@ -4,6 +4,7 @@ const router = express.Router();
 const Level = require("../models/levels");
 const User = require("../models/user");
 const requireLogin = require("../middleware/requireLogin");
+const authorization = require("../middleware/authorization");
 const multer = require("multer");
 const path = require("path");
 const bcrypt = require("bcrypt");
@@ -61,58 +62,88 @@ router.post("/postLevel", upload, (req, res) => {
 });
 
 //Get current level of a user
-// router.get("/getCurrentLevel", requireLogin, (req, res) => {
-//   User.findById(req.user._id)
-//     .populate("atLevel", ["_id", "hint", "question"])
-//     .then((level) => {
-//       console.log(level, "level");
-//       res.status(200).json(level);
-//     })
-//     .catch((err) => {
-//       res.json({
-//         err: "Sorry, There was an network error showing your current level",
-//       });
-//     });
-// });
-
-//Checking answer of the level
-router.post("/answer", requireLogin, (req, res) => {
-  const { answer } = req.body;
-
-  User.findById(req.user._id)
-    .populate("atLevel", ["_id", "answer"])
+router.get("/getCurrentLevel", authorization, (req, res) => {
+  Level.findById(req.headers["question-headers"])
     .then((level) => {
-      //Checking for the answer
-
-      bcrypt.compare(answer, level.atLevel.answer).then((isMatch) => {
-        if (isMatch) {
-          User.findByIdAndUpdate(
-            req.user._id,
-            {
-              $set: {
-                atLevel: level.atLevel._id + 1, //Updating level
-                lastLevelCrackedAt: Date.now(), //Updating the time of last cracked level
-              },
-            },
-            {
-              new: true,
-              runValidators: true,
-            }
-          )
-            .populate("atLevel", ["_id", "hint", "question"])
-            .then((newLevel) => {
-              res.status(200).json(newLevel);
-            });
-        } else {
-          return res.status(400).json({
-            errors: [{ msg: "Incorrect answer" }],
-          });
-        }
-      });
+      res.status(200).json(level);
     })
     .catch((err) => {
-      console.log(err);
+      res.json({
+        err: "Sorry.there was a network error while showing level",
+      });
     });
+});
+
+//Checking answer of the level
+router.post("/answer", authorization, (req, res) => {
+  const { answer, question } = req.body;
+  Level.findById(question).then((ans) => {
+    User.findById(req.team._id)
+      .then((level) => {
+        bcrypt.compare(answer, ans.answer).then((isMatch) => {
+          if (isMatch) {
+            User.findByIdAndUpdate(
+              req.team._id,
+              {
+                $set: {
+                  lastLevelCrackedAt: Date.now(),
+                  points: level.points + ans.points,
+                },
+              },
+              {
+                new: true,
+                runValidators: true,
+              }
+            ).then((newLevel) => {
+              res.status(200).json("Correct Answer!");
+            });
+          } else {
+            return res.status(400).json({
+              errors: [{ msg: "Incorrect answer" }],
+            });
+          }
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
+  // res.status(200).json(req);
+  // User.findById(req.user._id)
+  //   .populate("atLevel", ["_id", "answer"])
+  //   .then((level) => {
+  //     //Checking for the answer
+
+  //     bcrypt.compare(answer, level.atLevel.answer).then((isMatch) => {
+  //       if (isMatch) {
+  //         User.findByIdAndUpdate(
+  //           req.user._id,
+  //           {
+  //             $set: {
+  //               atLevel: level.atLevel._id + 1, //Updating level
+  //               lastLevelCrackedAt: Date.now(), //Updating the time of last cracked level
+  //             },
+  //           },
+  //   {
+  //     new: true,
+  //     runValidators: true,
+  //   }
+  // )
+  //           .populate("atLevel", ["_id", "hint", "question"])
+  //           .then((newLevel) => {
+  //             res.status(200).json(newLevel);
+  //           });
+  //       } else {
+  // return res.status(400).json({
+  //   errors: [{ msg: "Incorrect answer" }],
+  // });
+  //       }
+  //     });
+  //   })
+  // .catch((err) => {
+  //   console.log(err);
+  // });
 });
 
 //Fectching users to be displayed on the leaderboard
