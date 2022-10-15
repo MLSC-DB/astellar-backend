@@ -78,34 +78,31 @@ router.get("/getCurrentLevel", authorization, (req, res) => {
 
 router.post("/answer", authorization, (req, res) => {
   const answer = req.body.answer;
-  const question = req.headers["question-headers"];
-  Level.findById(question).then((ans) => {
-    User.findById(req.team._id).then((level) => {
-      bcrypt.compare(answer, ans.answer).then((isMatch) => {
-        if (isMatch) {
-          User.findByIdAndUpdate(
-            req.team._id,
-            {
-              $set: {
-                atlevel: level.atlevel + 1, //Updating level
-                lastLevelCrackedAt: Date.now(), //Updating the time of last cracked level
-              },
+  Level.findById(req.team.atlevel).then((ans) => {
+    bcrypt.compare(answer, ans.answer).then((isMatch) => {
+      if (isMatch) {
+        User.findByIdAndUpdate(
+          req.team._id,
+          {
+            $set: {
+              lastLevelCrackedAt: Date.now(), 
+              atlevel: req.team.atlevel + 1,
             },
-            {
-              new: true,
-              runValidators: true,
-            }
-          )
-            .populate("atLevel", ["_id", "hint", "question"])
-            .then((newLevel) => {
-              res.status(200).json("Correct Answer!");
-            });
-        } else {
-          return res.status(400).json({
-            errors: [{ msg: "Incorrect answer" }],
+          },
+          {
+            new: true,
+            runValidators: true,
+          }
+        )
+          .populate("atLevel", ["_id", "hint", "question"])
+          .then((newLevel) => {
+            res.status(200).json("Correct Answer!");
           });
-        }
-      });
+      } else {
+        return res.status(400).json({
+          errors: [{ msg: "Incorrect answer" }],
+        });
+      }
     });
   });
 });
