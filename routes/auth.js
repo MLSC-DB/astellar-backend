@@ -8,7 +8,7 @@ const { body, validationResult } = require("express-validator");
 const { route } = require("./levels");
 
 function checkOrigin(origin) {
-  if (!(origin === "https://astellar.xyz")) {
+  if ((origin === "https://astellar.xyz")) {
     return true;
   } else {
     return false;
