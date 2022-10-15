@@ -9,20 +9,17 @@ const levelSchema = new schema({
     type: String,
     required: true,
   },
-  hint: {
+  link: {
     type: String,
-    required: true,
+    default: null,
   },
   answer: {
     type: String,
     required: true,
   },
-  points: {
-    type: Number,
-    required: true,
-  },
   fileURL: {
     type: String,
+    default: null,
   },
 });
 
