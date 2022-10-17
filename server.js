@@ -4,7 +4,7 @@ const app = express();
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-// const cors = require("cors");
+const cors = require("cors");
 
 const dotenv = require("dotenv");
 const { rateLimiterUsingThirdParty } = require("./middleware/rateLimiter");
@@ -36,25 +36,13 @@ app.use(
 
 app.use(bodyParser.json());
 
-// app.use(cors());
+app.use(cors());
 
 app.use(cookieParser());
 app.use(rateLimiterUsingThirdParty);
 
 app.use("/api/user", authUser);
 app.use("/api", level);
-
-app.use("/public", express.static("public"));
-
-if (process.env.NODE_ENV === "production") {
-  // Set static folder
-  app.use(express.static("client/build"));
-  app.use("/public", express.static("public"));
-
-  app.get("*", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
-  });
-}
 
 const PORT = process.env.PORT || 3001;
 
